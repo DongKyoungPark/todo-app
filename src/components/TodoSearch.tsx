@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo, useCallback, ChangeEvent } from 'react'
 import styled from 'styled-components'
 
 interface TodoSearchProps {
@@ -25,7 +25,7 @@ const SearchInput = styled.input`
 
 const SEARCH_QUERY_KEY = 'todo-search-query'
 
-const TodoSearch: React.FC<TodoSearchProps> = ({ onSearch }) => {
+const TodoSearch: React.FC<TodoSearchProps> = memo(({ onSearch }) => {
   const [query, setQuery] = useState('')
 
   useEffect(() => {
@@ -36,13 +36,16 @@ const TodoSearch: React.FC<TodoSearchProps> = ({ onSearch }) => {
     }
   }, [onSearch])
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newQuery = e.target.value
-    setQuery(newQuery)
-    onSearch(newQuery)
+  const handleSearch = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const newQuery = e.target.value
+      setQuery(newQuery)
+      onSearch(newQuery)
 
-    localStorage.setItem(SEARCH_QUERY_KEY, newQuery)
-  }
+      localStorage.setItem(SEARCH_QUERY_KEY, newQuery)
+    },
+    [onSearch]
+  )
 
   return (
     <SearchContainer>
@@ -54,6 +57,6 @@ const TodoSearch: React.FC<TodoSearchProps> = ({ onSearch }) => {
       />
     </SearchContainer>
   )
-}
+})
 
 export default TodoSearch

@@ -1,3 +1,4 @@
+import { memo, MouseEvent, useCallback, useMemo } from 'react'
 import styled from 'styled-components'
 import { ToDo } from '../types/types'
 
@@ -70,47 +71,58 @@ const EditButton = styled.button`
   }
 `
 
-const TodoItem: React.FC<TodoItemProps> = ({
-  todo,
-  onToggle,
-  onSelect,
-  selected,
-  isEditing,
-  onEdit,
-}) => {
-  const { id, text, done, deadline } = todo
+const TodoItem: React.FC<TodoItemProps> = memo(
+  ({ todo, onToggle, onSelect, selected, isEditing, onEdit }) => {
+    const { id, text, done, deadline } = todo
 
-  const threeDaysAgo = Date.now() - 259200000
-  const isNearDeadline = deadline > threeDaysAgo && deadline < Date.now()
+    const { isNearDeadline, formattedDate } = useMemo(() => {
+      const threeDaysAgo = Date.now() - 259200000
+      const isNear = deadline > threeDaysAgo && deadline < Date.now()
 
-  const formattedDate = new Date(deadline).toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
+      const formatted = new Date(deadline).toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
 
-  return (
-    <ItemContainer
-      done={done}
-      isNearDeadline={isNearDeadline}
-      selected={selected}
-      onClick={() => onSelect(id, !selected)}
-    >
-      <Checkbox type="checkbox" checked={done} onChange={() => onToggle(id)} />
-      <Text done={done}>{text}</Text>
-      <Deadline isNearDeadline={isNearDeadline}>{formattedDate}</Deadline>
-      {!isEditing && (
-        <EditButton
-          onClick={(e) => {
-            e.stopPropagation()
-            onEdit(id)
-          }}
-        >
-          수정
-        </EditButton>
-      )}
-    </ItemContainer>
-  )
-}
+      return { isNearDeadline: isNear, formattedDate: formatted }
+    }, [deadline])
+
+    const handleClick = useCallback(() => {
+      onSelect(id, !selected)
+    }, [id, selected, onSelect])
+
+    const handleToggle = useCallback(() => {
+      onToggle(id)
+    }, [id, onToggle])
+
+    const handleEdit = useCallback(
+      (e: MouseEvent) => {
+        e.stopPropagation()
+        onEdit(id)
+      },
+      [id, onEdit]
+    )
+
+    return (
+      <ItemContainer
+        done={done}
+        isNearDeadline={isNearDeadline}
+        selected={selected}
+        onClick={handleClick}
+      >
+        <Checkbox
+          type="checkbox"
+          checked={done}
+          onChange={handleToggle}
+          onClick={(e) => e.stopPropagation()}
+        />
+        <Text done={done}>{text}</Text>
+        <Deadline isNearDeadline={isNearDeadline}>{formattedDate}</Deadline>
+        {!isEditing && <EditButton onClick={handleEdit}>수정</EditButton>}
+      </ItemContainer>
+    )
+  }
+)
 
 export default TodoItem

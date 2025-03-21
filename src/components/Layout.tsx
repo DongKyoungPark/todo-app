@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { ReactNode, memo } from 'react'
 import styled from 'styled-components'
 
 interface LayoutProps {
@@ -27,9 +27,10 @@ const Content = styled.main`
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 20px;
+  min-height: 500px;
 `
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout: React.FC<LayoutProps> = memo(({ children }) => {
   return (
     <LayoutContainer>
       <Header>
@@ -38,6 +39,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <Content>{children}</Content>
     </LayoutContainer>
   )
-}
+})
 
 export default Layout

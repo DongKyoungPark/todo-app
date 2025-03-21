@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, memo, useCallback, FormEvent, ChangeEvent } from 'react'
 import styled from 'styled-components'
 
 interface TodoFormProps {
@@ -52,31 +52,42 @@ const ErrorText = styled.p`
   text-align: left;
 `
 
-const TodoForm: React.FC<TodoFormProps> = ({ onSubmit }) => {
+const TodoForm: React.FC<TodoFormProps> = memo(({ onSubmit }) => {
   const [text, setText] = useState('')
   const [date, setDate] = useState('')
   const [error, setError] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = useCallback(
+    (e: FormEvent) => {
+      e.preventDefault()
 
-    if (!text.trim()) {
-      setError('할 일을 입력하세요.')
-      return
-    }
+      if (!text.trim()) {
+        setError('할 일을 입력하세요.')
+        return
+      }
 
-    if (!date) {
-      setError('날짜를 입력 or 선택하세요.')
-      return
-    }
+      if (!date) {
+        setError('날짜를 입력 or 선택하세요.')
+        return
+      }
 
-    setError('')
+      setError('')
 
-    onSubmit(text, new Date(date).getTime())
+      onSubmit(text, new Date(date).getTime())
 
-    setText('')
-    setDate('')
-  }
+      setText('')
+      setDate('')
+    },
+    [text, date, onSubmit]
+  )
+
+  const handleTextChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setText(e.target.value)
+  }, [])
+
+  const handleDateChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setDate(e.target.value)
+  }, [])
 
   return (
     <FormContainer onSubmit={handleSubmit}>
@@ -85,7 +96,7 @@ const TodoForm: React.FC<TodoFormProps> = ({ onSubmit }) => {
           type="text"
           placeholder="할 일을 입력하세요"
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={handleTextChange}
           style={{
             border:
               text.trim() || error === '' ? '1px solid #ddd' : '1px solid red',
@@ -94,7 +105,7 @@ const TodoForm: React.FC<TodoFormProps> = ({ onSubmit }) => {
         <Input
           type="date"
           value={date}
-          onChange={(e) => setDate(e.target.value)}
+          onChange={handleDateChange}
           style={{
             border: date || error === '' ? '1px solid #ddd' : '1px solid red',
           }}
@@ -104,6 +115,6 @@ const TodoForm: React.FC<TodoFormProps> = ({ onSubmit }) => {
       {error && <ErrorText>{error}</ErrorText>}
     </FormContainer>
   )
-}
+})
 
 export default TodoForm
